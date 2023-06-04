@@ -37,6 +37,11 @@ func (Admin) TableName() string {
 type RequestableAdministratorInterface interface {
 	// create admin
 	ForCreation() Admin
+	ForList() (uint, uint)
+}
+
+func (req *AdminRequest) ForList() (uint, uint) {
+	return req.Page, req.Limit
 }
 
 func (req *AdminRequest) ForCreation() Admin {

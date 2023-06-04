@@ -9,7 +9,7 @@ import (
 
 type AdminRepositoryInterface interface {
 	CreateAdmin(admin models.AdminRequest) chan RepositoryResult[models.Admin]
-	GetAdmins() chan RepositoryResult[[]models.Admin]
+	GetAdmins(admin models.AdminRequest) chan RepositoryResult[[]models.Admin]
 	GetAdminById(id string) chan RepositoryResult[models.Admin]
 }
 
@@ -38,11 +38,15 @@ func (r *adminRepository) CreateAdmin(admin models.AdminRequest) chan Repository
 	return result
 }
 
-func (r *adminRepository) GetAdmins() chan RepositoryResult[[]models.Admin] {
+func (r *adminRepository) GetAdmins(admin models.AdminRequest) chan RepositoryResult[[]models.Admin] {
 	result := make(chan RepositoryResult[[]models.Admin])
 	go func() {
 		var admins []models.Admin
-		r.db.Find(&admins)
+		adminCount := int64(0)
+		page, limit := admin.ForList()
+		r.db.Count(&adminCount)
+		offset := (page - 1) * limit
+		r.db.Offset(int(offset)).Limit(int(limit)).Find(&admins)
 		result <- RepositoryResult[[]models.Admin]{
 			Data:       admins,
 			Error:      nil,

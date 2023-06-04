@@ -3,6 +3,7 @@ package handlers
 import (
 	"klikdaily-databoard/models"
 	"klikdaily-databoard/usecases"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -31,7 +32,16 @@ func (h *adminHandler) CreateAdmin(c *gin.Context) {
 }
 
 func (h *adminHandler) GetAdmins(c *gin.Context) {
-	adminsResult := h.AdminUsecase.GetAdmins()
+	page := c.DefaultQuery("page", "1")
+	limit := c.DefaultQuery("limit", "2")
+
+	p, _ := strconv.Atoi(page)
+	l, _ := strconv.Atoi(limit)
+	adminRequest := models.AdminRequest{
+		Page:  uint(p),
+		Limit: uint(l),
+	}
+	adminsResult := h.AdminUsecase.GetAdmins(adminRequest)
 	c.JSON(adminsResult.StatusCode, adminsResult)
 }
 
