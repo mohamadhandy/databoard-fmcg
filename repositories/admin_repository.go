@@ -1,9 +1,14 @@
 package repositories
 
 import (
+	"context"
+	"encoding/json"
+	"fmt"
 	"klikdaily-databoard/models"
 	"net/http"
+	"time"
 
+	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 )
 
@@ -14,12 +19,14 @@ type AdminRepositoryInterface interface {
 }
 
 type adminRepository struct {
-	db *gorm.DB
+	db  *gorm.DB
+	rdb *redis.Client
 }
 
-func InitAdminRepository(db *gorm.DB) AdminRepositoryInterface {
+func InitAdminRepository(db *gorm.DB, rdb *redis.Client) AdminRepositoryInterface {
 	return &adminRepository{
-		db: db,
+		db:  db,
+		rdb: rdb,
 	}
 }
 
@@ -40,13 +47,51 @@ func (r *adminRepository) CreateAdmin(admin models.AdminRequest) chan Repository
 
 func (r *adminRepository) GetAdmins(admin models.AdminRequest) chan RepositoryResult[[]models.Admin] {
 	result := make(chan RepositoryResult[[]models.Admin])
+	ctx := context.Background()
 	go func() {
 		var admins []models.Admin
 		adminCount := int64(0)
 		page, limit := admin.ForList()
-		r.db.Count(&adminCount)
-		offset := (page - 1) * limit
-		r.db.Offset(int(offset)).Limit(int(limit)).Find(&admins)
+		value, err := r.rdb.Get(ctx, fmt.Sprintf("page_%v_limit_%v", page, limit)).Result()
+		if err == redis.Nil {
+			r.db.Count(&adminCount)
+			offset := (page - 1) * limit
+			r.db.Offset(int(offset)).Limit(int(limit)).Find(&admins)
+			valueMarshal, _ := json.Marshal(admins)
+			err = r.rdb.Set(ctx, fmt.Sprintf("page_%v_limit_%v", page, limit), string(valueMarshal), 1*time.Minute).Err()
+			if err != nil {
+				fmt.Println(err)
+				result <- RepositoryResult[[]models.Admin]{
+					Data:       admins,
+					Error:      nil,
+					StatusCode: http.StatusInternalServerError,
+					Message:    "Error",
+				}
+				return
+			}
+		} else if err != nil {
+			fmt.Println(err)
+			result <- RepositoryResult[[]models.Admin]{
+				Data:       admins,
+				Error:      nil,
+				StatusCode: http.StatusInternalServerError,
+				Message:    "Error",
+			}
+			return
+		} else {
+			err = json.Unmarshal([]byte(value), &admins)
+			if err != nil {
+				fmt.Println(err)
+				result <- RepositoryResult[[]models.Admin]{
+					Data:       admins,
+					Error:      nil,
+					StatusCode: http.StatusInternalServerError,
+					Message:    "Error",
+				}
+				return
+			}
+		}
+
 		result <- RepositoryResult[[]models.Admin]{
 			Data:       admins,
 			Error:      nil,

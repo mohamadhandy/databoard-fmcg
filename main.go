@@ -18,6 +18,6 @@ func main() {
 	// router.PUT("/users/:user_id", authMiddleware, userController.UpdateUser)
 	// router.DELETE("/users/:user_id", authMiddleware, userController.DeleteUser)
 
-	routes.RouteAPI(router, context.Background(), config.NewConnection())
+	routes.RouteAPI(router, context.Background(), config.NewConnection(), config.NewConnectionRedis())
 	router.Run("localhost:9000")
 }

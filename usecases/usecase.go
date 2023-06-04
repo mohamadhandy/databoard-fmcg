@@ -3,6 +3,7 @@ package usecases
 import (
 	"klikdaily-databoard/repositories"
 
+	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 )
 
@@ -18,9 +19,9 @@ type Usecases struct {
 
 var useCaseInstance Usecases
 
-func InitRepository(db *gorm.DB) Repositories {
+func InitRepository(db *gorm.DB, rdb *redis.Client) Repositories {
 	return Repositories{
-		AdminRepository:          repositories.InitAdminRepository(db),
+		AdminRepository:          repositories.InitAdminRepository(db, rdb),
 		AuthenticationRepository: repositories.InitAuthenticationRepository(db),
 	}
 }
