@@ -11,3 +11,8 @@ func InitVersionOneAuthenticationHandler(u usecases.Repositories) Authentication
 	uc := usecases.GetUseCase(u)
 	return InitAuthenticationHandler(uc.AuthenticationUseCase)
 }
+
+func InitVersionOneBrandHandler(u usecases.Repositories) BrandHandlerInterface {
+	uc := usecases.GetUseCase(u)
+	return InitBrandHandler(uc.BrandUseCase)
+}

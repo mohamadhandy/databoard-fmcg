@@ -1,5 +1,5 @@
 package models
 
 type AccessibleModel interface {
-	Admin | []Admin
+	Admin | []Admin | Brand | []Brand
 }
