@@ -60,7 +60,6 @@ func (r *adminRepository) GetAdmins(admin models.AdminRequest) chan RepositoryRe
 			valueMarshal, _ := json.Marshal(admins)
 			err = r.rdb.Set(ctx, fmt.Sprintf("page_%v_limit_%v", page, limit), string(valueMarshal), 1*time.Minute).Err()
 			if err != nil {
-				fmt.Println(err)
 				result <- RepositoryResult[[]models.Admin]{
 					Data:       admins,
 					Error:      nil,
@@ -70,7 +69,6 @@ func (r *adminRepository) GetAdmins(admin models.AdminRequest) chan RepositoryRe
 				return
 			}
 		} else if err != nil {
-			fmt.Println(err)
 			result <- RepositoryResult[[]models.Admin]{
 				Data:       admins,
 				Error:      nil,
@@ -81,7 +79,6 @@ func (r *adminRepository) GetAdmins(admin models.AdminRequest) chan RepositoryRe
 		} else {
 			err = json.Unmarshal([]byte(value), &admins)
 			if err != nil {
-				fmt.Println(err)
 				result <- RepositoryResult[[]models.Admin]{
 					Data:       admins,
 					Error:      nil,

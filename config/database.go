@@ -24,7 +24,6 @@ func NewConnection() *gorm.DB {
 	db, err := gorm.Open(postgres.Open(dbURL), &gorm.Config{})
 	if err != nil {
 		helper.Error("Error connecting to database")
-		fmt.Println("test")
 		panic(err)
 	}
 	return db

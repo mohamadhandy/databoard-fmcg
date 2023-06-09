@@ -1,7 +1,6 @@
 package helper
 
 import (
-	"fmt"
 	"os"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -14,7 +13,6 @@ func ExtractUserIDFromToken(tokenString string) string {
 		signingKey := []byte(os.Getenv("SECRET_KEY"))
 		return signingKey, nil
 	})
-	fmt.Println("token: " + token.Raw)
 	if err != nil {
 		// Handle token parsing or verification errors
 		return "Parsing error: " + err.Error()
