@@ -7,6 +7,7 @@ import (
 
 type BrandUsecaseInterface interface {
 	CreateBrand(tokenString string, br models.BrandRequest) repositories.RepositoryResult[models.Brand]
+	GetBrandById(id string) repositories.RepositoryResult[models.Brand]
 }
 
 type brandUsecase struct {
@@ -23,4 +24,8 @@ func (b *brandUsecase) CreateBrand(tokenString string, br models.BrandRequest) r
 	res := b.r.CreateBrand(tokenString, br)
 	brandResult := <-res
 	return brandResult
+}
+
+func (b *brandUsecase) GetBrandById(id string) repositories.RepositoryResult[models.Brand] {
+	return <-b.r.GetBrandById(id)
 }
