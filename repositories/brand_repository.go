@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"klikdaily-databoard/helper"
+	"klikdaily-databoard/middleware"
 	"klikdaily-databoard/models"
 	"net/http"
 	"strconv"
@@ -75,7 +76,7 @@ func (b *brandRepository) GetPreviousBrand() string {
 
 func (b *brandRepository) CreateBrand(tokenString string, br models.BrandRequest) chan RepositoryResult[models.Brand] {
 	result := make(chan RepositoryResult[models.Brand])
-	userName := helper.ExtractUserIDFromToken(tokenString)
+	userName := middleware.ExtractNameFromToken(tokenString)
 	// get by id first ? for create new id based on previous id
 	latestId := b.GetPreviousBrand()
 	if latestId == "" {

@@ -39,6 +39,7 @@ func (h *AuthenticationHandler) Login(c *gin.Context) {
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, &middleware.MyCustomClaims{
 		Email: result.Data.Email,
+		Name:  result.Data.Name,
 	})
 	tokenString, err := token.SignedString([]byte(os.Getenv("SECRET_KEY")))
 	if err != nil {

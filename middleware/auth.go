@@ -1,7 +1,7 @@
 package middleware
 
 import (
-	"klikdaily-databoard/helper"
+	"fmt"
 	"net/http"
 	"os"
 
@@ -22,7 +22,7 @@ func AuthMiddleware() gin.HandlerFunc {
 			return []byte(os.Getenv("SECRET_KEY")), nil
 		})
 		if err != nil {
-			helper.Error(err.Error())
+			fmt.Println("error: " + err.Error())
 			ctx.AbortWithStatusJSON(http.StatusInternalServerError, "unauthorized error parse claims!")
 			return
 		}
@@ -31,5 +31,25 @@ func AuthMiddleware() gin.HandlerFunc {
 		} else {
 			ctx.AbortWithStatusJSON(http.StatusUnprocessableEntity, "unauthorized err")
 		}
+	}
+}
+
+func ExtractNameFromToken(tokenString string) string {
+	token, err := jwt.ParseWithClaims(tokenString, &MyCustomClaims{}, func(token *jwt.Token) (interface{}, error) {
+		return []byte(os.Getenv("SECRET_KEY")), nil
+	})
+	if err != nil {
+		fmt.Println("error extract token name: " + err.Error())
+		return err.Error()
+	}
+	fmt.Println("token test: " + token.Raw)
+
+	// Extract the user ID from the token claims
+	if res, ok := token.Claims.(*MyCustomClaims); ok && token.Valid {
+		fmt.Println("extract token success: " + res.Name)
+		return res.Name
+	} else {
+		fmt.Println("extract token not valid")
+		return "Token Not Valid"
 	}
 }
