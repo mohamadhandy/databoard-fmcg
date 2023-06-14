@@ -16,3 +16,8 @@ func InitVersionOneBrandHandler(u usecases.Repositories) BrandHandlerInterface {
 	uc := usecases.GetUseCase(u)
 	return InitBrandHandler(uc.BrandUseCase)
 }
+
+func InitVersionOneCategoryHandler(u usecases.Repositories) CategoryHandlerInterface {
+	uc := usecases.GetUseCase(u)
+	return InitCategoryHandler(uc.CategoryUseCase)
+}

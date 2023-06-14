@@ -16,6 +16,7 @@ func RouteAPI(g *gin.Engine, parentCtx context.Context, db *gorm.DB, rdb *redis.
 	admin := handlers.InitVersionOneAdminHandler(repo)
 	auth := handlers.InitVersionOneAuthenticationHandler(repo)
 	brand := handlers.InitVersionOneBrandHandler(repo)
+	category := handlers.InitVersionOneCategoryHandler(repo)
 
 	g.POST("/login", auth.Login)
 
@@ -27,4 +28,7 @@ func RouteAPI(g *gin.Engine, parentCtx context.Context, db *gorm.DB, rdb *redis.
 	g.POST("/brands", middleware.AuthMiddleware(), brand.CreateBrand)
 	g.GET("/brands/:id", middleware.AuthMiddleware(), brand.GetBrandById)
 	g.PUT("/brands/:id", middleware.AuthMiddleware(), brand.UpdateBrand)
+
+	// categories
+	g.POST("/categories", middleware.AuthMiddleware(), category.CreateCategory)
 }
