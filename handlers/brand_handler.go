@@ -10,6 +10,7 @@ import (
 type BrandHandlerInterface interface {
 	CreateBrand(c *gin.Context)
 	GetBrandById(c *gin.Context)
+	UpdateBrand(c *gin.Context)
 }
 
 type brandHandler struct {
@@ -34,5 +35,16 @@ func (b *brandHandler) CreateBrand(c *gin.Context) {
 func (b *brandHandler) GetBrandById(c *gin.Context) {
 	inputId := c.Param("id")
 	brandResult := b.BrandUseCase.GetBrandById(inputId)
+	c.JSON(brandResult.StatusCode, brandResult)
+}
+
+func (b *brandHandler) UpdateBrand(c *gin.Context) {
+	inputId := c.Param("id")
+	authHeader := c.GetHeader("Authorization")
+	br := models.BrandRequest{
+		ID: inputId,
+	}
+	c.BindJSON(&br)
+	brandResult := b.BrandUseCase.UpdateBrand(authHeader, br)
 	c.JSON(brandResult.StatusCode, brandResult)
 }

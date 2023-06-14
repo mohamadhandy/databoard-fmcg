@@ -14,6 +14,7 @@ type BrandRepositoryInterface interface {
 	CreateBrand(tokenString string, br models.BrandRequest) chan RepositoryResult[models.Brand]
 	GetBrandById(id string) chan RepositoryResult[models.Brand]
 	GetPreviousBrand() string
+	UpdateBrand(tokenString string, br models.BrandRequest) chan RepositoryResult[models.Brand]
 }
 
 type brandRepository struct {
@@ -99,6 +100,28 @@ func (b *brandRepository) CreateBrand(tokenString string, br models.BrandRequest
 			Error:      nil,
 			StatusCode: http.StatusCreated,
 			Message:    "Success Create Brand",
+		}
+	}()
+	return result
+}
+
+func (b *brandRepository) UpdateBrand(tokenString string, br models.BrandRequest) chan RepositoryResult[models.Brand] {
+	result := make(chan RepositoryResult[models.Brand])
+	userName := middleware.ExtractNameFromToken(tokenString)
+	go func() {
+		brand := models.Brand{
+			Name:      br.Name,
+			ID:        br.ID,
+			Status:    "active",
+			CreatedBy: br.CreatedBy,
+			UpdatedBy: userName,
+		}
+		b.db.Save(&brand)
+		result <- RepositoryResult[models.Brand]{
+			Data:       brand,
+			Error:      nil,
+			StatusCode: http.StatusOK,
+			Message:    "Update Brand Success",
 		}
 	}()
 	return result

@@ -26,4 +26,5 @@ func RouteAPI(g *gin.Engine, parentCtx context.Context, db *gorm.DB, rdb *redis.
 	// brands
 	g.POST("/brands", middleware.AuthMiddleware(), brand.CreateBrand)
 	g.GET("/brands/:id", middleware.AuthMiddleware(), brand.GetBrandById)
+	g.PUT("/brands/:id", middleware.AuthMiddleware(), brand.UpdateBrand)
 }
