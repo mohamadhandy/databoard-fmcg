@@ -31,4 +31,5 @@ func RouteAPI(g *gin.Engine, parentCtx context.Context, db *gorm.DB, rdb *redis.
 
 	// categories
 	g.POST("/categories", middleware.AuthMiddleware(), category.CreateCategory)
+	g.GET("/categories", middleware.AuthMiddleware(), category.GetCategories)
 }

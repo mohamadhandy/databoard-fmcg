@@ -12,6 +12,7 @@ import (
 
 type CategoryRepositoryInterface interface {
 	CreateCategory(tokenString string, cr models.CategoryRequest) chan RepositoryResult[models.Category]
+	GetCategories(tokenString string) chan RepositoryResult[[]models.Category]
 	GetPreviousCategoryId() string
 }
 
@@ -31,6 +32,29 @@ func (c *categoryRepository) GetPreviousCategoryId() string {
 		return "error " + err.Error()
 	}
 	return latestId
+}
+
+func (c *categoryRepository) GetCategories(tokenString string) chan RepositoryResult[[]models.Category] {
+	result := make(chan RepositoryResult[[]models.Category])
+	go func() {
+		categoryRes := []models.Category{}
+		if err := c.db.Find(&categoryRes).Error; err != nil {
+			result <- RepositoryResult[[]models.Category]{
+				Data:       []models.Category{},
+				Error:      err,
+				StatusCode: http.StatusInternalServerError,
+				Message:    err.Error(),
+			}
+			return
+		}
+		result <- RepositoryResult[[]models.Category]{
+			Data:       categoryRes,
+			Error:      nil,
+			StatusCode: http.StatusOK,
+			Message:    "Success get Categories",
+		}
+	}()
+	return result
 }
 
 func (c *categoryRepository) CreateCategory(tokenString string, cr models.CategoryRequest) chan RepositoryResult[models.Category] {
