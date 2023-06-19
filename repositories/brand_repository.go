@@ -11,7 +11,7 @@ import (
 )
 
 type BrandRepositoryInterface interface {
-	CreateBrand(tokenString string, br models.BrandRequest) chan RepositoryResult[models.Brand]
+	CreateBrand(tokenString string, br models.BrandRequest) chan RepositoryResult[any]
 	GetBrandById(id string) chan RepositoryResult[any]
 	GetBrands(br models.BrandRequest) chan RepositoryResult[any]
 	GetPreviousBrand() string
@@ -104,8 +104,8 @@ func (b *brandRepository) GetPreviousBrand() string {
 	return latestId
 }
 
-func (b *brandRepository) CreateBrand(tokenString string, br models.BrandRequest) chan RepositoryResult[models.Brand] {
-	result := make(chan RepositoryResult[models.Brand])
+func (b *brandRepository) CreateBrand(tokenString string, br models.BrandRequest) chan RepositoryResult[any] {
+	result := make(chan RepositoryResult[any])
 	userName := middleware.ExtractNameFromToken(tokenString)
 	// get by id first ? for create new id based on previous id
 	latestId := b.GetPreviousBrand()
@@ -124,7 +124,7 @@ func (b *brandRepository) CreateBrand(tokenString string, br models.BrandRequest
 			UpdatedBy: userName,
 		}
 		b.db.Create(&brand)
-		result <- RepositoryResult[models.Brand]{
+		result <- RepositoryResult[any]{
 			Data:       brand,
 			Error:      nil,
 			StatusCode: http.StatusCreated,
