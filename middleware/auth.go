@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"fmt"
+	"klikdaily-databoard/helper"
 	"net/http"
 	"os"
 
@@ -23,7 +24,13 @@ func AuthMiddleware() gin.HandlerFunc {
 		})
 		if err != nil {
 			fmt.Println("error: " + err.Error())
-			ctx.AbortWithStatusJSON(http.StatusInternalServerError, "unauthorized error parse claims!")
+			data := helper.Response{
+				Data:       nil,
+				Error:      err,
+				Message:    err.Error(),
+				StatusCode: http.StatusUnprocessableEntity,
+			}
+			ctx.AbortWithStatusJSON(http.StatusUnprocessableEntity, data)
 			return
 		}
 		if _, ok := token.Claims.(*MyCustomClaims); ok && token.Valid {
