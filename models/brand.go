@@ -22,6 +22,9 @@ type BrandRequest struct {
 	CreatedBy string `gorm:"type:varchar(100);not null" json:"created_by"`
 	UpdatedBy string `gorm:"type:varchar(100);not null" json:"updated_by"`
 	Status    string `gorm:"type:varchar(20);not null" json:"status"`
+	// Plural
+	Page  int `json:"page"`
+	Limit int `json:"limit"`
 }
 
 type RequestableBrandInterface interface {

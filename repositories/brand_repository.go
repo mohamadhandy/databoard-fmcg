@@ -13,6 +13,7 @@ import (
 type BrandRepositoryInterface interface {
 	CreateBrand(tokenString string, br models.BrandRequest) chan RepositoryResult[models.Brand]
 	GetBrandById(id string) chan RepositoryResult[models.Brand]
+	GetBrands(br models.BrandRequest) chan RepositoryResult[any]
 	GetPreviousBrand() string
 	UpdateBrand(tokenString string, br models.BrandRequest) chan RepositoryResult[models.Brand]
 }
@@ -25,6 +26,34 @@ func InitBrandRepository(db *gorm.DB) BrandRepositoryInterface {
 	return &brandRepository{
 		db,
 	}
+}
+
+func (b *brandRepository) GetBrands(br models.BrandRequest) chan RepositoryResult[any] {
+	result := make(chan RepositoryResult[any])
+	go func() {
+		brands := []models.Brand{}
+		brandCount := int64(0)
+		page := br.Page
+		limit := br.Limit
+		b.db.Count(&brandCount)
+		offset := (page - 1) * limit
+		if err := b.db.Offset(int(offset)).Limit(int(limit)).Find(&brands).Error; err != nil {
+			result <- RepositoryResult[any]{
+				Data:       nil,
+				Error:      err,
+				Message:    err.Error(),
+				StatusCode: http.StatusInternalServerError,
+			}
+			return
+		}
+		result <- RepositoryResult[any]{
+			Data:       brands,
+			Error:      nil,
+			Message:    "Success Get List Brand",
+			StatusCode: http.StatusOK,
+		}
+	}()
+	return result
 }
 
 func (b *brandRepository) GetBrandById(id string) chan RepositoryResult[models.Brand] {

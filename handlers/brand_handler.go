@@ -3,6 +3,7 @@ package handlers
 import (
 	"klikdaily-databoard/models"
 	"klikdaily-databoard/usecases"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -11,6 +12,7 @@ type BrandHandlerInterface interface {
 	CreateBrand(c *gin.Context)
 	GetBrandById(c *gin.Context)
 	UpdateBrand(c *gin.Context)
+	GetBrands(c *gin.Context)
 }
 
 type brandHandler struct {
@@ -21,6 +23,20 @@ func InitBrandHandler(u usecases.BrandUsecaseInterface) BrandHandlerInterface {
 	return &brandHandler{
 		BrandUseCase: u,
 	}
+}
+
+func (b *brandHandler) GetBrands(c *gin.Context) {
+	page := c.DefaultQuery("page", "1")
+	limit := c.DefaultQuery("limit", "10")
+
+	p, _ := strconv.Atoi(page)
+	l, _ := strconv.Atoi(limit)
+	brandRequest := models.BrandRequest{
+		Page:  p,
+		Limit: l,
+	}
+	brands := b.BrandUseCase.GetBrands(brandRequest)
+	c.JSON(brands.StatusCode, brands)
 }
 
 func (b *brandHandler) CreateBrand(c *gin.Context) {
