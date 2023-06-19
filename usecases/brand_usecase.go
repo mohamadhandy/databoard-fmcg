@@ -7,7 +7,7 @@ import (
 
 type BrandUsecaseInterface interface {
 	CreateBrand(tokenString string, br models.BrandRequest) repositories.RepositoryResult[models.Brand]
-	GetBrandById(id string) repositories.RepositoryResult[models.Brand]
+	GetBrandById(id string) repositories.RepositoryResult[any]
 	GetBrands(brandRequest models.BrandRequest) repositories.RepositoryResult[any]
 	UpdateBrand(tokenString string, br models.BrandRequest) repositories.RepositoryResult[models.Brand]
 }
@@ -32,7 +32,7 @@ func (b *brandUsecase) CreateBrand(tokenString string, br models.BrandRequest) r
 	return brandResult
 }
 
-func (b *brandUsecase) GetBrandById(id string) repositories.RepositoryResult[models.Brand] {
+func (b *brandUsecase) GetBrandById(id string) repositories.RepositoryResult[any] {
 	return <-b.r.GetBrandById(id)
 }
 

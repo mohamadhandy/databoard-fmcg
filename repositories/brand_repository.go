@@ -12,7 +12,7 @@ import (
 
 type BrandRepositoryInterface interface {
 	CreateBrand(tokenString string, br models.BrandRequest) chan RepositoryResult[models.Brand]
-	GetBrandById(id string) chan RepositoryResult[models.Brand]
+	GetBrandById(id string) chan RepositoryResult[any]
 	GetBrands(br models.BrandRequest) chan RepositoryResult[any]
 	GetPreviousBrand() string
 	UpdateBrand(tokenString string, br models.BrandRequest) chan RepositoryResult[models.Brand]
@@ -56,13 +56,13 @@ func (b *brandRepository) GetBrands(br models.BrandRequest) chan RepositoryResul
 	return result
 }
 
-func (b *brandRepository) GetBrandById(id string) chan RepositoryResult[models.Brand] {
-	result := make(chan RepositoryResult[models.Brand])
+func (b *brandRepository) GetBrandById(id string) chan RepositoryResult[any] {
+	result := make(chan RepositoryResult[any])
 	go func() {
 		brand := models.Brand{}
-		err := b.db.Find(&brand).Where("id = ?", id).Error
+		err := b.db.First(&brand, id).Error
 		if err == gorm.ErrRecordNotFound {
-			result <- RepositoryResult[models.Brand]{
+			result <- RepositoryResult[any]{
 				Data:       brand,
 				Error:      nil,
 				StatusCode: http.StatusNotFound,
@@ -70,7 +70,7 @@ func (b *brandRepository) GetBrandById(id string) chan RepositoryResult[models.B
 			}
 			return
 		} else if err != nil {
-			result <- RepositoryResult[models.Brand]{
+			result <- RepositoryResult[any]{
 				Data:       brand,
 				Error:      nil,
 				StatusCode: http.StatusInternalServerError,
@@ -78,7 +78,7 @@ func (b *brandRepository) GetBrandById(id string) chan RepositoryResult[models.B
 			}
 			return
 		} else if brand.Name == "" {
-			result <- RepositoryResult[models.Brand]{
+			result <- RepositoryResult[any]{
 				Data:       brand,
 				Error:      nil,
 				StatusCode: http.StatusNotFound,
@@ -86,7 +86,7 @@ func (b *brandRepository) GetBrandById(id string) chan RepositoryResult[models.B
 			}
 			return
 		}
-		result <- RepositoryResult[models.Brand]{
+		result <- RepositoryResult[any]{
 			Data:       brand,
 			Error:      nil,
 			StatusCode: http.StatusOK,
