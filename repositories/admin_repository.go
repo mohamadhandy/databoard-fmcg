@@ -15,7 +15,7 @@ import (
 type AdminRepositoryInterface interface {
 	CreateAdmin(admin models.AdminRequest) chan RepositoryResult[models.Admin]
 	GetAdmins(admin models.AdminRequest) chan RepositoryResult[[]models.Admin]
-	GetAdminById(id string) chan RepositoryResult[models.Admin]
+	GetAdminById(id string) chan RepositoryResult[any]
 }
 
 type adminRepository struct {
@@ -99,21 +99,21 @@ func (r *adminRepository) GetAdmins(admin models.AdminRequest) chan RepositoryRe
 	return result
 }
 
-func (r *adminRepository) GetAdminById(id string) chan RepositoryResult[models.Admin] {
-	result := make(chan RepositoryResult[models.Admin])
+func (r *adminRepository) GetAdminById(id string) chan RepositoryResult[any] {
+	result := make(chan RepositoryResult[any])
 	go func() {
 		var admin models.Admin
 		r.db.Where("id = ?", id).First(&admin)
 		if admin.ID == "" {
-			result <- RepositoryResult[models.Admin]{
-				Data:       admin,
+			result <- RepositoryResult[any]{
+				Data:       nil,
 				Error:      nil,
 				StatusCode: http.StatusNotFound,
 				Message:    "Admin Not Found",
 			}
 			return
 		}
-		result <- RepositoryResult[models.Admin]{
+		result <- RepositoryResult[any]{
 			Data:       admin,
 			Error:      nil,
 			StatusCode: http.StatusOK,

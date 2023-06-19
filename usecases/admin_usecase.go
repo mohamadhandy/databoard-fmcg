@@ -11,7 +11,7 @@ import (
 type AdminUseCaseInterface interface {
 	CreateAdmin(admin models.AdminRequest) repositories.RepositoryResult[models.Admin]
 	GetAdmins(admin models.AdminRequest) repositories.RepositoryResult[[]models.Admin]
-	GetAdminById(id string) repositories.RepositoryResult[models.Admin]
+	GetAdminById(id string) repositories.RepositoryResult[any]
 }
 
 type adminUsecase struct {
@@ -44,7 +44,7 @@ func (u *adminUsecase) GetAdmins(admin models.AdminRequest) repositories.Reposit
 	return adminsResult
 }
 
-func (u *adminUsecase) GetAdminById(id string) repositories.RepositoryResult[models.Admin] {
+func (u *adminUsecase) GetAdminById(id string) repositories.RepositoryResult[any] {
 	result := u.AdminRepository.GetAdminById(id)
 	adminResult := <-result
 	return adminResult

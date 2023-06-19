@@ -2,7 +2,7 @@ package repositories
 
 import "klikdaily-databoard/models"
 
-type RepositoryResult[T models.AccessibleModel] struct {
+type RepositoryResult[T any | models.AccessibleModel] struct {
 	Data       T
 	Error      error
 	StatusCode int
