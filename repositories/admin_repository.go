@@ -14,7 +14,7 @@ import (
 
 type AdminRepositoryInterface interface {
 	CreateAdmin(admin models.AdminRequest) chan RepositoryResult[models.Admin]
-	GetAdmins(admin models.AdminRequest) chan RepositoryResult[[]models.Admin]
+	GetAdmins(admin models.AdminRequest) chan RepositoryResult[any]
 	GetAdminById(id string) chan RepositoryResult[any]
 }
 
@@ -45,8 +45,8 @@ func (r *adminRepository) CreateAdmin(admin models.AdminRequest) chan Repository
 	return result
 }
 
-func (r *adminRepository) GetAdmins(admin models.AdminRequest) chan RepositoryResult[[]models.Admin] {
-	result := make(chan RepositoryResult[[]models.Admin])
+func (r *adminRepository) GetAdmins(admin models.AdminRequest) chan RepositoryResult[any] {
+	result := make(chan RepositoryResult[any])
 	ctx := context.Background()
 	go func() {
 		var admins []models.Admin
@@ -60,36 +60,36 @@ func (r *adminRepository) GetAdmins(admin models.AdminRequest) chan RepositoryRe
 			valueMarshal, _ := json.Marshal(admins)
 			err = r.rdb.Set(ctx, fmt.Sprintf("page_%v_limit_%v", page, limit), string(valueMarshal), 1*time.Minute).Err()
 			if err != nil {
-				result <- RepositoryResult[[]models.Admin]{
-					Data:       admins,
+				result <- RepositoryResult[any]{
+					Data:       nil,
 					Error:      nil,
 					StatusCode: http.StatusInternalServerError,
-					Message:    "Error",
+					Message:    "Error: " + err.Error(),
 				}
 				return
 			}
 		} else if err != nil {
-			result <- RepositoryResult[[]models.Admin]{
-				Data:       admins,
+			result <- RepositoryResult[any]{
+				Data:       nil,
 				Error:      nil,
 				StatusCode: http.StatusInternalServerError,
-				Message:    "Error",
+				Message:    "Error: " + err.Error(),
 			}
 			return
 		} else {
 			err = json.Unmarshal([]byte(value), &admins)
 			if err != nil {
-				result <- RepositoryResult[[]models.Admin]{
-					Data:       admins,
+				result <- RepositoryResult[any]{
+					Data:       nil,
 					Error:      nil,
 					StatusCode: http.StatusInternalServerError,
-					Message:    "Error",
+					Message:    "Error: " + err.Error(),
 				}
 				return
 			}
 		}
 
-		result <- RepositoryResult[[]models.Admin]{
+		result <- RepositoryResult[any]{
 			Data:       admins,
 			Error:      nil,
 			StatusCode: http.StatusOK,
