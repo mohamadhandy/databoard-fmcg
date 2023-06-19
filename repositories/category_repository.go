@@ -11,8 +11,8 @@ import (
 )
 
 type CategoryRepositoryInterface interface {
-	CreateCategory(tokenString string, cr models.CategoryRequest) chan RepositoryResult[models.Category]
-	GetCategories(tokenString string) chan RepositoryResult[[]models.Category]
+	CreateCategory(tokenString string, cr models.CategoryRequest) chan RepositoryResult[any]
+	GetCategories(tokenString string) chan RepositoryResult[any]
 	GetPreviousCategoryId() string
 }
 
@@ -34,12 +34,12 @@ func (c *categoryRepository) GetPreviousCategoryId() string {
 	return latestId
 }
 
-func (c *categoryRepository) GetCategories(tokenString string) chan RepositoryResult[[]models.Category] {
-	result := make(chan RepositoryResult[[]models.Category])
+func (c *categoryRepository) GetCategories(tokenString string) chan RepositoryResult[any] {
+	result := make(chan RepositoryResult[any])
 	go func() {
 		categoryRes := []models.Category{}
 		if err := c.db.Find(&categoryRes).Error; err != nil {
-			result <- RepositoryResult[[]models.Category]{
+			result <- RepositoryResult[any]{
 				Data:       []models.Category{},
 				Error:      err,
 				StatusCode: http.StatusInternalServerError,
@@ -47,7 +47,7 @@ func (c *categoryRepository) GetCategories(tokenString string) chan RepositoryRe
 			}
 			return
 		}
-		result <- RepositoryResult[[]models.Category]{
+		result <- RepositoryResult[any]{
 			Data:       categoryRes,
 			Error:      nil,
 			StatusCode: http.StatusOK,
@@ -57,8 +57,8 @@ func (c *categoryRepository) GetCategories(tokenString string) chan RepositoryRe
 	return result
 }
 
-func (c *categoryRepository) CreateCategory(tokenString string, cr models.CategoryRequest) chan RepositoryResult[models.Category] {
-	result := make(chan RepositoryResult[models.Category])
+func (c *categoryRepository) CreateCategory(tokenString string, cr models.CategoryRequest) chan RepositoryResult[any] {
+	result := make(chan RepositoryResult[any])
 	userName := middleware.ExtractNameFromToken(tokenString)
 	latestId := c.GetPreviousCategoryId()
 	if latestId == "" {
@@ -74,7 +74,7 @@ func (c *categoryRepository) CreateCategory(tokenString string, cr models.Catego
 			Name:      cr.Name,
 		}
 		c.db.Create(&category)
-		result <- RepositoryResult[models.Category]{
+		result <- RepositoryResult[any]{
 			Data:       category,
 			StatusCode: http.StatusCreated,
 			Error:      nil,

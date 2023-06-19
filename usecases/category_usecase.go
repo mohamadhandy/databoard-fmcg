@@ -6,8 +6,8 @@ import (
 )
 
 type CategoryUseCaseInterface interface {
-	CreateCategory(tokenString string, cr models.CategoryRequest) repositories.RepositoryResult[models.Category]
-	GetCategories(tokenString string) repositories.RepositoryResult[[]models.Category]
+	CreateCategory(tokenString string, cr models.CategoryRequest) repositories.RepositoryResult[any]
+	GetCategories(tokenString string) repositories.RepositoryResult[any]
 }
 
 type categoryUseCase struct {
@@ -20,10 +20,10 @@ func InitCategoryUseCase(r repositories.CategoryRepositoryInterface) CategoryUse
 	}
 }
 
-func (c *categoryUseCase) CreateCategory(tokenString string, cr models.CategoryRequest) repositories.RepositoryResult[models.Category] {
+func (c *categoryUseCase) CreateCategory(tokenString string, cr models.CategoryRequest) repositories.RepositoryResult[any] {
 	return <-c.r.CreateCategory(tokenString, cr)
 }
 
-func (c *categoryUseCase) GetCategories(tokenString string) repositories.RepositoryResult[[]models.Category] {
+func (c *categoryUseCase) GetCategories(tokenString string) repositories.RepositoryResult[any] {
 	return <-c.r.GetCategories(tokenString)
 }
