@@ -4,12 +4,13 @@ import (
 	"klikdaily-databoard/helper"
 	"klikdaily-databoard/models"
 	"klikdaily-databoard/repositories"
+	"net/http"
 
 	"golang.org/x/crypto/bcrypt"
 )
 
 type AdminUseCaseInterface interface {
-	CreateAdmin(admin models.AdminRequest) repositories.RepositoryResult[models.Admin]
+	CreateAdmin(admin models.AdminRequest) repositories.RepositoryResult[any]
 	GetAdmins(admin models.AdminRequest) repositories.RepositoryResult[any]
 	GetAdminById(id string) repositories.RepositoryResult[any]
 }
@@ -24,18 +25,21 @@ func InitAdminUsecase(r repositories.AdminRepositoryInterface) AdminUseCaseInter
 	}
 }
 
-func (u *adminUsecase) CreateAdmin(admin models.AdminRequest) repositories.RepositoryResult[models.Admin] {
-	passwordHash, _ := bcrypt.GenerateFromPassword([]byte(admin.Password), bcrypt.DefaultCost)
-	// if err != nil {
-	// 	// return err in here
-	// 	return user, helpers.NewUnexpectedError("Bcrypt Error")
-	// }
+func (u *adminUsecase) CreateAdmin(admin models.AdminRequest) repositories.RepositoryResult[any] {
+	passwordHash, err := bcrypt.GenerateFromPassword([]byte(admin.Password), bcrypt.DefaultCost)
+	if err != nil {
+		// return err
+		return repositories.RepositoryResult[any]{
+			Data:       nil,
+			Error:      err,
+			StatusCode: http.StatusInternalServerError,
+			Message:    err.Error(),
+		}
+	}
 	genUuid := helper.InitUuidHelper().GenerateUUID()
 	admin.ID = genUuid
 	admin.Password = string(passwordHash)
-	result := u.AdminRepository.CreateAdmin(admin)
-	adminResult := <-result
-	return adminResult
+	return <-u.AdminRepository.CreateAdmin(admin)
 }
 
 func (u *adminUsecase) GetAdmins(admin models.AdminRequest) repositories.RepositoryResult[any] {

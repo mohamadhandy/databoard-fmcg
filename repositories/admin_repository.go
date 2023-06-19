@@ -13,7 +13,7 @@ import (
 )
 
 type AdminRepositoryInterface interface {
-	CreateAdmin(admin models.AdminRequest) chan RepositoryResult[models.Admin]
+	CreateAdmin(admin models.AdminRequest) chan RepositoryResult[any]
 	GetAdmins(admin models.AdminRequest) chan RepositoryResult[any]
 	GetAdminById(id string) chan RepositoryResult[any]
 }
@@ -30,12 +30,20 @@ func InitAdminRepository(db *gorm.DB, rdb *redis.Client) AdminRepositoryInterfac
 	}
 }
 
-func (r *adminRepository) CreateAdmin(admin models.AdminRequest) chan RepositoryResult[models.Admin] {
-	result := make(chan RepositoryResult[models.Admin])
+func (r *adminRepository) CreateAdmin(admin models.AdminRequest) chan RepositoryResult[any] {
+	result := make(chan RepositoryResult[any])
 	go func() {
 		adminReq := admin.ForCreation()
-		r.db.Create(&adminReq)
-		result <- RepositoryResult[models.Admin]{
+		if err := r.db.Create(&adminReq).Error; err != nil {
+			result <- RepositoryResult[any]{
+				Data:       nil,
+				Error:      err,
+				Message:    err.Error(),
+				StatusCode: http.StatusInternalServerError,
+			}
+			return
+		}
+		result <- RepositoryResult[any]{
 			Data:       adminReq,
 			Error:      nil,
 			StatusCode: http.StatusCreated,
