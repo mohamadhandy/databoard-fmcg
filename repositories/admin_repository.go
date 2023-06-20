@@ -96,9 +96,19 @@ func (r *adminRepository) GetAdmins(admin models.AdminRequest) chan RepositoryRe
 				return
 			}
 		}
-
+		adminResponses := make([]models.AdminResponse, len(admins))
+		for i, v := range admins {
+			adminResponses[i] = models.AdminResponse{
+				Email:       v.Email,
+				Name:        v.Name,
+				ID:          v.ID,
+				Phonenumber: v.PhoneNumber,
+				Status:      v.Status,
+				Role:        v.Role,
+			}
+		}
 		result <- RepositoryResult[any]{
-			Data:       admins,
+			Data:       adminResponses,
 			Error:      nil,
 			StatusCode: http.StatusOK,
 			Message:    "Success Get Admins",
@@ -121,8 +131,16 @@ func (r *adminRepository) GetAdminById(id string) chan RepositoryResult[any] {
 			}
 			return
 		}
+		adminResponse := models.AdminResponse{
+			Name:        admin.Name,
+			Email:       admin.Email,
+			ID:          admin.ID,
+			Phonenumber: admin.PhoneNumber,
+			Status:      admin.Status,
+			Role:        admin.Role,
+		}
 		result <- RepositoryResult[any]{
-			Data:       admin,
+			Data:       adminResponse,
 			Error:      nil,
 			StatusCode: http.StatusOK,
 			Message:    "Success Get Admin By Id",

@@ -14,6 +14,16 @@ type Admin struct {
 	PhoneNumber string    `gorm:"type:varchar(20);not null" json:"phone_number"`
 }
 
+type AdminResponse struct {
+	// Singular
+	ID          string `json:"id"`
+	Name        string `json:"name" binding:"required"`
+	Email       string `json:"email" binding:"required"`
+	Phonenumber string `json:"phone_number" binding:"required"`
+	Status      string `json:"status" binding:"required"`
+	Role        string `json:"role" binding:"required"`
+}
+
 type AdminRequest struct {
 	// Singular
 	ID          string `json:"id"`
