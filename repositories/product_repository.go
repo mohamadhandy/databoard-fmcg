@@ -67,37 +67,33 @@ func (r *productRepository) GetProductById(id string) chan RepositoryResult[any]
 
 func (r *productRepository) CreateProduct(pr models.ProductRequest, tokenString string) chan RepositoryResult[any] {
 	result := make(chan RepositoryResult[any])
-	latestID := r.GetPreviousId()
-	latestOnlyId := ""
-	var latestIdInt int
 	go func() {
-		if latestID != "" {
-			latestOnlyId = helper.SplitProductID(latestID)
-			var errConvert error
-			latestIdInt, errConvert = strconv.Atoi(latestOnlyId)
-			if errConvert != nil {
+		tx := r.db.Begin()
+		defer func() {
+			if r := recover(); r != nil {
+				tx.Rollback()
 				result <- RepositoryResult[any]{
 					Data:       nil,
-					Error:      errConvert,
-					Message:    errConvert.Error(),
+					Error:      errors.New("panic occurred"),
+					Message:    "An unexpected error occurred",
 					StatusCode: http.StatusInternalServerError,
 				}
-				// if err occurs from Atoi then return
-				return
 			}
-		} else if latestID == "" {
-			var errConvert error
-			latestIdInt, errConvert = strconv.Atoi("0") // why "0"? because first time create product.
-			if errConvert != nil {
-				result <- RepositoryResult[any]{
-					Data:       nil,
-					Error:      errConvert,
-					Message:    errConvert.Error(),
-					StatusCode: http.StatusInternalServerError,
-				}
-				return
+		}()
+
+		latestID := r.GetPreviousId()
+		latestOnlyId := helper.SplitProductID(latestID)
+		latestIdInt, err := strconv.Atoi(latestOnlyId)
+		if err != nil {
+			result <- RepositoryResult[any]{
+				Data:       nil,
+				Error:      err,
+				Message:    err.Error(),
+				StatusCode: http.StatusInternalServerError,
 			}
+			return
 		}
+
 		productId, latestIdString := helper.GenerateProductID(latestIdInt)
 		userName := helper.ExtractUserIDFromToken(tokenString)
 		product := models.Product{
@@ -110,7 +106,16 @@ func (r *productRepository) CreateProduct(pr models.ProductRequest, tokenString 
 			UpdatedBy:  userName,
 			SKU:        pr.BrandId + pr.CategoryId + latestIdString,
 		}
-		if err := r.db.Create(&product).Error; err != nil {
+
+		err = tx.Transaction(func(tx *gorm.DB) error {
+			if err := r.db.Create(&product).Error; err != nil {
+				return err
+			}
+			return nil
+		})
+
+		if err != nil {
+			tx.Rollback()
 			result <- RepositoryResult[any]{
 				Data:       nil,
 				Error:      err,
