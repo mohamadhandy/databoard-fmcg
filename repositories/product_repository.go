@@ -1,6 +1,7 @@
 package repositories
 
 import (
+	"errors"
 	"klikdaily-databoard/helper"
 	"klikdaily-databoard/models"
 	"net/http"
@@ -11,6 +12,7 @@ import (
 
 type ProductRepositoryInterface interface {
 	CreateProduct(pr models.ProductRequest, tokenString string) chan RepositoryResult[any]
+	GetProductById(id string) chan RepositoryResult[any]
 	GetPreviousId() string
 }
 
@@ -30,6 +32,37 @@ func (r *productRepository) GetPreviousId() string {
 		return "error " + err.Error()
 	}
 	return latestId
+}
+
+func (r *productRepository) GetProductById(id string) chan RepositoryResult[any] {
+	result := make(chan RepositoryResult[any])
+	go func() {
+		product := models.Product{}
+		if err := r.db.Where("id = ?", id).Find(&product).Error; err != nil {
+			result <- RepositoryResult[any]{
+				Data:       nil,
+				Error:      err,
+				Message:    err.Error(),
+				StatusCode: http.StatusInternalServerError,
+			}
+			return
+		}
+		if product.Name == "" {
+			result <- RepositoryResult[any]{
+				Data:       nil,
+				Error:      errors.New("product not found"),
+				Message:    "Product Not found",
+				StatusCode: http.StatusNotFound,
+			}
+		}
+		result <- RepositoryResult[any]{
+			Data:       product,
+			Error:      nil,
+			Message:    "Success get product by id: " + id,
+			StatusCode: http.StatusOK,
+		}
+	}()
+	return result
 }
 
 func (r *productRepository) CreateProduct(pr models.ProductRequest, tokenString string) chan RepositoryResult[any] {

@@ -7,6 +7,7 @@ import (
 
 type ProductUseCaseInterface interface {
 	CreateProduct(tokenString string, pr models.ProductRequest) repositories.RepositoryResult[any]
+	GetProductById(id string) repositories.RepositoryResult[any]
 }
 
 type productUseCase struct {
@@ -17,6 +18,10 @@ func InitProductUseCase(r repositories.ProductRepositoryInterface) ProductUseCas
 	return &productUseCase{
 		r: r,
 	}
+}
+
+func (u *productUseCase) GetProductById(id string) repositories.RepositoryResult[any] {
+	return <-u.r.GetProductById(id)
 }
 
 func (u *productUseCase) CreateProduct(tokenString string, pr models.ProductRequest) repositories.RepositoryResult[any] {

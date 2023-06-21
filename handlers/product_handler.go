@@ -9,6 +9,7 @@ import (
 
 type ProductHandlerInterface interface {
 	CreateProduct(c *gin.Context)
+	GetProductById(c *gin.Context)
 }
 
 type productHandler struct {
@@ -19,6 +20,12 @@ func InitProductHandler(u usecases.ProductUseCaseInterface) ProductHandlerInterf
 	return &productHandler{
 		productUseCase: u,
 	}
+}
+
+func (h *productHandler) GetProductById(c *gin.Context) {
+	id := c.Param("id")
+	product := h.productUseCase.GetProductById(id)
+	c.JSON(product.StatusCode, product)
 }
 
 func (h *productHandler) CreateProduct(c *gin.Context) {
