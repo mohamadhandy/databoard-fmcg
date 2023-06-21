@@ -1,7 +1,6 @@
 package repositories
 
 import (
-	"fmt"
 	"klikdaily-databoard/helper"
 	"klikdaily-databoard/models"
 	"net/http"
@@ -36,21 +35,38 @@ func (r *productRepository) GetPreviousId() string {
 func (r *productRepository) CreateProduct(pr models.ProductRequest, tokenString string) chan RepositoryResult[any] {
 	result := make(chan RepositoryResult[any])
 	latestID := r.GetPreviousId()
-	latestOnlyId := helper.SplitProductID(latestID)
-	latestIdInt, err := strconv.Atoi(latestOnlyId)
-	if err != nil {
-		result <- RepositoryResult[any]{
-			Data:       nil,
-			Error:      err,
-			Message:    err.Error(),
-			StatusCode: http.StatusInternalServerError,
-		}
-	}
-	productId, latestIdString := helper.GenerateProductID(latestIdInt)
-	userName := helper.ExtractUserIDFromToken(tokenString)
-	fmt.Println("latestID: " + latestID + "latest id string: " + latestIdString)
-	fmt.Println(latestIdInt)
+	latestOnlyId := ""
+	var latestIdInt int
 	go func() {
+		if latestID != "" {
+			latestOnlyId = helper.SplitProductID(latestID)
+			var errConvert error
+			latestIdInt, errConvert = strconv.Atoi(latestOnlyId)
+			if errConvert != nil {
+				result <- RepositoryResult[any]{
+					Data:       nil,
+					Error:      errConvert,
+					Message:    errConvert.Error(),
+					StatusCode: http.StatusInternalServerError,
+				}
+				// if err occurs from Atoi then return
+				return
+			}
+		} else if latestID == "" {
+			var errConvert error
+			latestIdInt, errConvert = strconv.Atoi("0") // why "0"? because first time create product.
+			if errConvert != nil {
+				result <- RepositoryResult[any]{
+					Data:       nil,
+					Error:      errConvert,
+					Message:    errConvert.Error(),
+					StatusCode: http.StatusInternalServerError,
+				}
+				return
+			}
+		}
+		productId, latestIdString := helper.GenerateProductID(latestIdInt)
+		userName := helper.ExtractUserIDFromToken(tokenString)
 		product := models.Product{
 			ID:         productId,
 			Name:       pr.Name,
