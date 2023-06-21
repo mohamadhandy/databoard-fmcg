@@ -3,6 +3,7 @@ package helper
 import (
 	"fmt"
 	"strconv"
+	"strings"
 )
 
 func GenerateNextID(highestID int) string {
@@ -27,4 +28,24 @@ func GenerateNextIDCategory(highestID int) string {
 	id = fmt.Sprintf("%02s", id)
 
 	return id
+}
+
+func GenerateProductID(highestID int) (string, string) {
+	// Generate id for Product Id
+	// increment the highest ID by 1
+	nextId := highestID + 1
+	// convert the incremented id back to a string with leading zeros
+	id := strconv.Itoa(nextId)
+	id = fmt.Sprintf("%04s", id)
+	return "KDR" + id, id
+}
+
+func SplitProductID(id string) string {
+	// split KDR & id
+	parts := strings.Split(id, "KDR")
+	onlyId := ""
+	if len(parts) > 1 {
+		onlyId = parts[1]
+	}
+	return onlyId
 }

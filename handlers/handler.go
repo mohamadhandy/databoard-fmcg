@@ -21,3 +21,8 @@ func InitVersionOneCategoryHandler(u usecases.Repositories) CategoryHandlerInter
 	uc := usecases.GetUseCase(u)
 	return InitCategoryHandler(uc.CategoryUseCase)
 }
+
+func InitVersionOneProductHandler(u usecases.Repositories) ProductHandlerInterface {
+	uc := usecases.GetUseCase(u)
+	return InitProductHandler(uc.ProductUseCase)
+}

@@ -12,6 +12,7 @@ type Repositories struct {
 	AuthenticationRepository repositories.AuthenticationRepositoryInterface
 	BrandRepository          repositories.BrandRepositoryInterface
 	CategoryRepository       repositories.CategoryRepositoryInterface
+	ProductRepository        repositories.ProductRepositoryInterface
 }
 
 type Usecases struct {
@@ -19,6 +20,7 @@ type Usecases struct {
 	AuthenticationUseCase AuthenticationUseCaseInterface
 	BrandUseCase          BrandUsecaseInterface
 	CategoryUseCase       CategoryUseCaseInterface
+	ProductUseCase        ProductUseCaseInterface
 }
 
 var useCaseInstance Usecases
@@ -29,6 +31,7 @@ func InitRepository(db *gorm.DB, rdb *redis.Client) Repositories {
 		AuthenticationRepository: repositories.InitAuthenticationRepository(db),
 		BrandRepository:          repositories.InitBrandRepository(db),
 		CategoryRepository:       repositories.InitCategoryRepository(db),
+		ProductRepository:        repositories.InitProductRepository(db),
 	}
 }
 
@@ -39,6 +42,7 @@ func GetUseCase(r Repositories) *Usecases {
 			AuthenticationUseCase: InitAuthenticationUseCase(r.AuthenticationRepository),
 			BrandUseCase:          InitBrandUseCase(r.BrandRepository),
 			CategoryUseCase:       InitCategoryUseCase(r.CategoryRepository),
+			ProductUseCase:        InitProductUseCase(r.ProductRepository),
 		}
 	}
 	return &useCaseInstance
