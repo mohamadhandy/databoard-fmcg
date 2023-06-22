@@ -1,6 +1,7 @@
 package repositories
 
 import (
+	"errors"
 	"klikdaily-databoard/helper"
 	"klikdaily-databoard/middleware"
 	"klikdaily-databoard/models"
@@ -116,6 +117,18 @@ func (b *brandRepository) CreateBrand(tokenString string, br models.BrandRequest
 	nextId := helper.GenerateNextID(latestIdInt)
 	go func() {
 		// validate brandRequest is created_by / updated_by superadmin role or adminGudang role or warehouseLeader role ?
+		tx := b.db.Begin()
+		defer func() {
+			if r := recover(); r != nil {
+				tx.Rollback()
+				result <- RepositoryResult[any]{
+					Data:       nil,
+					Error:      errors.New("panic occured"),
+					StatusCode: http.StatusInternalServerError,
+					Message:    "An unexpected error occured",
+				}
+			}
+		}()
 		brand := models.Brand{
 			Name:      br.Name,
 			ID:        nextId,
@@ -123,7 +136,22 @@ func (b *brandRepository) CreateBrand(tokenString string, br models.BrandRequest
 			CreatedBy: userName,
 			UpdatedBy: userName,
 		}
-		b.db.Create(&brand)
+		err := tx.Transaction(func(tx *gorm.DB) error {
+			if err := b.db.Create(&brand).Error; err != nil {
+				return err
+			}
+			return nil
+		})
+		if err != nil {
+			tx.Rollback()
+			result <- RepositoryResult[any]{
+				Data:       nil,
+				Error:      err,
+				Message:    "Error: " + err.Error(),
+				StatusCode: http.StatusInternalServerError,
+			}
+			return
+		}
 		result <- RepositoryResult[any]{
 			Data:       brand,
 			Error:      nil,
