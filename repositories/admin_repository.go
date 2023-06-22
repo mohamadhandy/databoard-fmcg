@@ -3,6 +3,7 @@ package repositories
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"klikdaily-databoard/models"
 	"net/http"
@@ -33,18 +34,45 @@ func InitAdminRepository(db *gorm.DB, rdb *redis.Client) AdminRepositoryInterfac
 func (r *adminRepository) CreateAdmin(admin models.AdminRequest) chan RepositoryResult[any] {
 	result := make(chan RepositoryResult[any])
 	go func() {
+		tx := r.db.Begin()
+		defer func() {
+			if r := recover(); r != nil {
+				tx.Rollback()
+				result <- RepositoryResult[any]{
+					Data:       nil,
+					Error:      errors.New("panic occured"),
+					Message:    "An unexpected error occured",
+					StatusCode: http.StatusInternalServerError,
+				}
+			}
+		}()
 		adminReq := admin.ForCreation()
-		if err := r.db.Create(&adminReq).Error; err != nil {
+		err := tx.Transaction(func(tx *gorm.DB) error {
+			if err := r.db.Create(&adminReq).Error; err != nil {
+				return err
+			}
+			return nil
+		})
+		if err != nil {
+			tx.Rollback()
 			result <- RepositoryResult[any]{
 				Data:       nil,
 				Error:      err,
-				Message:    err.Error(),
 				StatusCode: http.StatusInternalServerError,
+				Message:    err.Error(),
 			}
 			return
 		}
+		adminResponse := models.AdminResponse{
+			Name:        adminReq.Name,
+			Email:       adminReq.Email,
+			ID:          adminReq.ID,
+			Phonenumber: adminReq.PhoneNumber,
+			Status:      adminReq.Status,
+			Role:        adminReq.Role,
+		}
 		result <- RepositoryResult[any]{
-			Data:       adminReq,
+			Data:       adminResponse,
 			Error:      nil,
 			StatusCode: http.StatusCreated,
 			Message:    "Success Create Admin",
