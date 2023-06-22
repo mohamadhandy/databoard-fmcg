@@ -129,9 +129,7 @@ func (r *productRepository) CreateProduct(pr models.ProductRequest, tokenString 
 		}()
 
 		latestID := r.GetPreviousId()
-		fmt.Println(latestID)
 		if strings.Contains(latestID, "error") {
-			fmt.Println("error test!!")
 			result <- RepositoryResult[any]{
 				Data:       nil,
 				Error:      errors.New(latestID),
