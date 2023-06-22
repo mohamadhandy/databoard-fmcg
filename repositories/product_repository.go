@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"errors"
+	"fmt"
 	"klikdaily-databoard/helper"
 	"klikdaily-databoard/models"
 	"net/http"
@@ -35,13 +36,20 @@ func InitProductRepository(db *gorm.DB) ProductRepositoryInterface {
 func (r *productRepository) GetProducts(productReq models.ProductRequest) chan RepositoryResult[any] {
 	result := make(chan RepositoryResult[any])
 	go func() {
-		products := []models.Product{}
+		products := []models.ProductResponse{}
 		totalProduct := int64(0)
 		page := productReq.Page
 		limit := productReq.Limit
 		r.db.Count(&totalProduct)
 		offset := (page - 1) * limit
-		if err := r.db.Offset(int(offset)).Limit(int(limit)).Find(&products).Error; err != nil {
+		query := `SELECT p2.id, p2.name, c2.name as category_name,
+              b2.name as brand_name, p2.status, p2.sku,
+              p2.created_at, p2.updated_at,
+              p2.created_by, p2.updated_by
+              FROM "Product" as p2
+              JOIN "Category" as c2 ON p2.category_id = c2.id
+              JOIN "Brand" as b2 ON p2.brand_id = b2.id`
+		if err := r.db.Offset(int(offset)).Limit(int(limit)).Raw(query).Scan(&products).Error; err != nil {
 			result <- RepositoryResult[any]{
 				Data:       nil,
 				Error:      err,
@@ -123,7 +131,9 @@ func (r *productRepository) CreateProduct(pr models.ProductRequest, tokenString 
 		}()
 
 		latestID := r.GetPreviousId()
+		fmt.Println(latestID)
 		if strings.Contains(latestID, "error") {
+			fmt.Println("error test!!")
 			result <- RepositoryResult[any]{
 				Data:       nil,
 				Error:      errors.New(latestID),

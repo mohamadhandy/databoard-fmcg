@@ -27,7 +27,7 @@ type ProductRequest struct {
 
 type ProductResponse struct {
 	ID           string    `json:"id"`
-	Name         string    `json:"name"`
+	Name         string    `gorm:"type:varchar(255);not null" json:"name"`
 	BrandName    string    `json:"brand_name"`
 	CategoryName string    `json:"category_name"`
 	CreatedAt    time.Time `json:"created_at"`
