@@ -14,6 +14,7 @@ import (
 type ProductRepositoryInterface interface {
 	CreateProduct(pr models.ProductRequest, tokenString string) chan RepositoryResult[any]
 	GetProductById(id string) chan RepositoryResult[any]
+	GetProducts(productReq models.ProductRequest) chan RepositoryResult[any]
 	GetPreviousId() string
 }
 
@@ -29,6 +30,34 @@ func InitProductRepository(db *gorm.DB) ProductRepositoryInterface {
 		latestID:    "",
 		latestIDSet: false,
 	}
+}
+
+func (r *productRepository) GetProducts(productReq models.ProductRequest) chan RepositoryResult[any] {
+	result := make(chan RepositoryResult[any])
+	go func() {
+		products := []models.Product{}
+		totalProduct := int64(0)
+		page := productReq.Page
+		limit := productReq.Limit
+		r.db.Count(&totalProduct)
+		offset := (page - 1) * limit
+		if err := r.db.Offset(int(offset)).Limit(int(limit)).Find(&products).Error; err != nil {
+			result <- RepositoryResult[any]{
+				Data:       nil,
+				Error:      err,
+				Message:    err.Error(),
+				StatusCode: http.StatusInternalServerError,
+			}
+			return
+		}
+		result <- RepositoryResult[any]{
+			Data:       products,
+			Error:      nil,
+			Message:    "Success Get Products",
+			StatusCode: http.StatusOK,
+		}
+	}()
+	return result
 }
 
 func (r *productRepository) GetPreviousId() string {
