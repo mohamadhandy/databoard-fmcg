@@ -37,19 +37,17 @@ func (r *productRepository) GetProducts(productReq models.ProductRequest) chan R
 	result := make(chan RepositoryResult[any])
 	go func() {
 		products := []models.ProductResponse{}
-		totalProduct := int64(0)
 		page := productReq.Page
 		limit := productReq.Limit
-		r.db.Count(&totalProduct)
-		offset := (page - 1) * limit
-		query := `SELECT p2.id, p2.name, c2.name as category_name,
-              b2.name as brand_name, p2.status, p2.sku,
-              p2.created_at, p2.updated_at,
-              p2.created_by, p2.updated_by
-              FROM "Product" as p2
-              JOIN "Category" as c2 ON p2.category_id = c2.id
-              JOIN "Brand" as b2 ON p2.brand_id = b2.id`
-		if err := r.db.Offset(int(offset)).Limit(int(limit)).Raw(query).Scan(&products).Error; err != nil {
+		query := fmt.Sprintf(`SELECT p2.id, p2.name, c2.name as category_name,
+		b2.name as brand_name, p2.status, p2.sku,
+		p2.created_at, p2.updated_at,
+		p2.created_by, p2.updated_by
+		FROM "Product" as p2
+		JOIN "Category" as c2 ON p2.category_id = c2.id
+		JOIN "Brand" as b2 ON p2.brand_id = b2.id
+		LIMIT %v OFFSET (%v - 1) * %v`, limit, page, limit)
+		if err := r.db.Raw(query).Scan(&products).Error; err != nil {
 			result <- RepositoryResult[any]{
 				Data:       nil,
 				Error:      err,
