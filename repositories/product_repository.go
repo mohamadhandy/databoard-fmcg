@@ -6,6 +6,7 @@ import (
 	"klikdaily-databoard/models"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"gorm.io/gorm"
 )
@@ -17,21 +18,32 @@ type ProductRepositoryInterface interface {
 }
 
 type productRepository struct {
-	db *gorm.DB
+	db          *gorm.DB
+	latestID    string // Cache the latest ID
+	latestIDSet bool   // Flag to indicate if the latest ID is set
 }
 
 func InitProductRepository(db *gorm.DB) ProductRepositoryInterface {
 	return &productRepository{
-		db,
+		db:          db,
+		latestID:    "",
+		latestIDSet: false,
 	}
 }
 
 func (r *productRepository) GetPreviousId() string {
-	latestId := ""
-	if err := r.db.Model(&models.Product{}).Select("id").Order("id desc").Limit(1).Scan(&latestId).Error; err != nil {
+	if r.latestIDSet {
+		return r.latestID
+	}
+
+	latestID := ""
+	if err := r.db.Model(&models.Product{}).Select("id").Order("id desc").Limit(1).Scan(&latestID).Error; err != nil {
 		return "error " + err.Error()
 	}
-	return latestId
+
+	r.latestID = latestID
+	r.latestIDSet = true
+	return latestID
 }
 
 func (r *productRepository) GetProductById(id string) chan RepositoryResult[any] {
@@ -82,6 +94,15 @@ func (r *productRepository) CreateProduct(pr models.ProductRequest, tokenString 
 		}()
 
 		latestID := r.GetPreviousId()
+		if strings.Contains(latestID, "error") {
+			result <- RepositoryResult[any]{
+				Data:       nil,
+				Error:      errors.New(latestID),
+				StatusCode: http.StatusInternalServerError,
+				Message:    latestID,
+			}
+			return
+		}
 		latestOnlyId := helper.SplitProductID(latestID)
 		latestIdInt, err := strconv.Atoi(latestOnlyId)
 		if err != nil {
