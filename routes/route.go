@@ -38,5 +38,6 @@ func RouteAPI(g *gin.Engine, parentCtx context.Context, db *gorm.DB, rdb *redis.
 	// products
 	g.POST("/products", middleware.AuthMiddleware(), product.CreateProduct)
 	g.GET("/products/:id", middleware.AuthMiddleware(), product.GetProductById)
+	g.PUT("/products/:id", middleware.AuthMiddleware(), product.UpdateProduct)
 	g.GET("/products", middleware.AuthMiddleware(), product.GetProducts)
 }

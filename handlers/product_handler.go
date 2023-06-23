@@ -12,6 +12,7 @@ type ProductHandlerInterface interface {
 	CreateProduct(c *gin.Context)
 	GetProductById(c *gin.Context)
 	GetProducts(c *gin.Context)
+	UpdateProduct(c *gin.Context)
 }
 
 type productHandler struct {
@@ -22,6 +23,17 @@ func InitProductHandler(u usecases.ProductUseCaseInterface) ProductHandlerInterf
 	return &productHandler{
 		productUseCase: u,
 	}
+}
+
+func (h *productHandler) UpdateProduct(c *gin.Context) {
+	authHeader := c.GetHeader("Authorization")
+	id := c.Param("id")
+	productRequest := models.ProductRequest{
+		ID: id,
+	}
+	c.BindJSON(&productRequest)
+	result := h.productUseCase.UpdateProduct(authHeader, productRequest)
+	c.JSON(result.StatusCode, result)
 }
 
 func (h *productHandler) GetProducts(c *gin.Context) {

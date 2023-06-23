@@ -16,6 +16,7 @@ type ProductRepositoryInterface interface {
 	CreateProduct(pr models.ProductRequest, tokenString string) chan RepositoryResult[any]
 	GetProductById(id string) chan RepositoryResult[any]
 	GetProducts(productReq models.ProductRequest) chan RepositoryResult[any]
+	UpdateProduct(tokenString string, productReq models.ProductRequest) chan RepositoryResult[any]
 	GetPreviousId() string
 }
 
@@ -95,6 +96,62 @@ func (r *productRepository) GetProductById(id string) chan RepositoryResult[any]
 			Data:       product,
 			Error:      nil,
 			Message:    "Success get product by id: " + id,
+			StatusCode: http.StatusOK,
+		}
+	}()
+	return result
+}
+
+func (r *productRepository) UpdateProduct(tokenString string, productReq models.ProductRequest) chan RepositoryResult[any] {
+	result := make(chan RepositoryResult[any])
+	go func() {
+		userName := helper.ExtractUserIDFromToken(tokenString)
+		product := models.Product{
+			Name:       productReq.Name,
+			ID:         productReq.ID,
+			BrandId:    productReq.BrandId,
+			CategoryId: productReq.CategoryId,
+			UpdatedBy:  userName,
+			Status:     "active",
+			CreatedBy:  productReq.CreatedBy,
+			CreatedAt:  productReq.CreatedAt,
+			SKU:        productReq.SKU,
+		}
+		tx := r.db.Begin()
+		defer func() {
+			if r := recover(); r != nil {
+				tx.Rollback()
+				result <- RepositoryResult[any]{
+					Data:       nil,
+					Error:      errors.New("panic occured"),
+					StatusCode: http.StatusInternalServerError,
+					Message:    "An unexpected token",
+				}
+				return
+			}
+		}()
+
+		err := tx.Transaction(func(tx *gorm.DB) error {
+			if err := r.db.Save(&product).Error; err != nil {
+				return err
+			}
+			return nil
+		})
+
+		if err != nil {
+			tx.Rollback()
+			result <- RepositoryResult[any]{
+				Data:       nil,
+				Error:      err,
+				Message:    err.Error(),
+				StatusCode: http.StatusInternalServerError,
+			}
+			return
+		}
+		result <- RepositoryResult[any]{
+			Data:       product,
+			Error:      nil,
+			Message:    "Success Update Product",
 			StatusCode: http.StatusOK,
 		}
 	}()
