@@ -20,16 +20,12 @@ type ProductRepositoryInterface interface {
 }
 
 type productRepository struct {
-	db          *gorm.DB
-	latestID    string // Cache the latest ID
-	latestIDSet bool   // Flag to indicate if the latest ID is set
+	db *gorm.DB
 }
 
 func InitProductRepository(db *gorm.DB) ProductRepositoryInterface {
 	return &productRepository{
-		db:          db,
-		latestID:    "",
-		latestIDSet: false,
+		db,
 	}
 }
 
@@ -67,17 +63,10 @@ func (r *productRepository) GetProducts(productReq models.ProductRequest) chan R
 }
 
 func (r *productRepository) GetPreviousId() string {
-	if r.latestIDSet {
-		return r.latestID
-	}
-
 	latestID := ""
 	if err := r.db.Model(&models.Product{}).Select("id").Order("id desc").Limit(1).Scan(&latestID).Error; err != nil {
 		return "error " + err.Error()
 	}
-
-	r.latestID = latestID
-	r.latestIDSet = true
 	return latestID
 }
 
