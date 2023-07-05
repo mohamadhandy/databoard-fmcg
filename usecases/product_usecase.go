@@ -8,7 +8,7 @@ import (
 type ProductUseCaseInterface interface {
 	CreateProduct(tokenString string, pr models.ProductRequest) repositories.RepositoryResult[any]
 	GetProductById(id string) repositories.RepositoryResult[any]
-	GetProducts(pr models.ProductRequest) repositories.RepositoryResult[any]
+	GetProducts(pr models.ProductRequest, searchKeyword string) repositories.RepositoryResult[any]
 	UpdateProduct(tokenString string, pr models.ProductRequest) repositories.RepositoryResult[any]
 }
 
@@ -26,8 +26,8 @@ func (u *productUseCase) UpdateProduct(tokenString string, pr models.ProductRequ
 	return <-u.r.UpdateProduct(tokenString, pr)
 }
 
-func (u *productUseCase) GetProducts(pr models.ProductRequest) repositories.RepositoryResult[any] {
-	return <-u.r.GetProducts(pr)
+func (u *productUseCase) GetProducts(pr models.ProductRequest, searchKeyword string) repositories.RepositoryResult[any] {
+	return <-u.r.GetProducts(pr, searchKeyword)
 }
 
 func (u *productUseCase) GetProductById(id string) repositories.RepositoryResult[any] {

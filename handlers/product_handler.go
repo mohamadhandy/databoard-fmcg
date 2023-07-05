@@ -104,6 +104,7 @@ func (h *productHandler) UpdateProduct(c *gin.Context) {
 }
 
 func (h *productHandler) GetProducts(c *gin.Context) {
+	searchKeyword, _ := c.GetQuery("search")
 	page := c.DefaultQuery("page", "1")
 	limit := c.DefaultQuery("limit", "10")
 	pageInt, _ := strconv.Atoi(page)
@@ -112,7 +113,7 @@ func (h *productHandler) GetProducts(c *gin.Context) {
 		Page:  pageInt,
 		Limit: limitInt,
 	}
-	result := h.productUseCase.GetProducts(productReq)
+	result := h.productUseCase.GetProducts(productReq, searchKeyword)
 	c.JSON(result.StatusCode, result)
 }
 

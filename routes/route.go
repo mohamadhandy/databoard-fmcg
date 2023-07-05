@@ -6,13 +6,14 @@ import (
 	"klikdaily-databoard/middleware"
 	"klikdaily-databoard/usecases"
 
+	"github.com/elastic/go-elasticsearch/v8"
 	"github.com/gin-gonic/gin"
 	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 )
 
-func RouteAPI(g *gin.Engine, parentCtx context.Context, db *gorm.DB, rdb *redis.Client) {
-	repo := usecases.InitRepository(db, rdb)
+func RouteAPI(g *gin.Engine, parentCtx context.Context, db *gorm.DB, rdb *redis.Client, es *elasticsearch.Client) {
+	repo := usecases.InitRepository(db, rdb, es)
 	admin := handlers.InitVersionOneAdminHandler(repo)
 	auth := handlers.InitVersionOneAuthenticationHandler(repo)
 	brand := handlers.InitVersionOneBrandHandler(repo)

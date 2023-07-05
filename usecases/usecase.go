@@ -3,6 +3,7 @@ package usecases
 import (
 	"klikdaily-databoard/repositories"
 
+	"github.com/elastic/go-elasticsearch/v8"
 	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 )
@@ -25,13 +26,13 @@ type Usecases struct {
 
 var useCaseInstance Usecases
 
-func InitRepository(db *gorm.DB, rdb *redis.Client) Repositories {
+func InitRepository(db *gorm.DB, rdb *redis.Client, es *elasticsearch.Client) Repositories {
 	return Repositories{
 		AdminRepository:          repositories.InitAdminRepository(db, rdb),
 		AuthenticationRepository: repositories.InitAuthenticationRepository(db),
 		BrandRepository:          repositories.InitBrandRepository(db),
 		CategoryRepository:       repositories.InitCategoryRepository(db),
-		ProductRepository:        repositories.InitProductRepository(db),
+		ProductRepository:        repositories.InitProductRepository(db, es),
 	}
 }
 
