@@ -6,7 +6,7 @@ import (
 	"klikdaily-databoard/middleware"
 	"klikdaily-databoard/usecases"
 
-	"github.com/elastic/go-elasticsearch/v8"
+	"github.com/elastic/go-elasticsearch/v7"
 	"github.com/gin-gonic/gin"
 	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"

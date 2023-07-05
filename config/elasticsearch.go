@@ -6,21 +6,19 @@ import (
 	"fmt"
 	"io/ioutil"
 
-	"github.com/elastic/go-elasticsearch/v8"
-	"github.com/elastic/go-elasticsearch/v8/esapi"
+	"github.com/elastic/go-elasticsearch/v7"
+	"github.com/elastic/go-elasticsearch/v7/esapi"
 )
 
 func SetupElasticsearch() (*elasticsearch.Client, error) {
 	cfg := elasticsearch.Config{
 		Addresses: []string{"http://localhost:9200"},
 	}
-
-	client, err := elasticsearch.NewClient(cfg)
+	esClient, err := elasticsearch.NewClient(cfg)
 	if err != nil {
 		return nil, err
 	}
-
-	return client, nil
+	return esClient, nil
 }
 
 func CreateIndex(client *elasticsearch.Client, indexName string) error {
