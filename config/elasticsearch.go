@@ -2,7 +2,7 @@ package config
 
 import (
 	"context"
-	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 
@@ -49,6 +49,7 @@ func IndexExists(client *elasticsearch.Client, indexName string) (bool, error) {
 	req := esapi.IndicesExistsRequest{
 		Index: []string{indexName},
 	}
+	fmt.Println(req)
 
 	// Execute the request
 	res, err := req.Do(context.Background(), client)
@@ -63,16 +64,22 @@ func IndexExists(client *elasticsearch.Client, indexName string) (bool, error) {
 	}
 
 	// Parse the response
-	var respBody map[string]interface{}
-	if err := json.NewDecoder(res.Body).Decode(&respBody); err != nil {
-		return false, fmt.Errorf("failed to parse index existence response: %s", err)
+	// var respBody map[string]interface{}
+	// fmt.Println(respBody)
+	// fmt.Println(res.Body)
+	// fmt.Println(res)
+	// if err := json.NewDecoder(res.Body).Decode(&respBody); err != nil {
+	// 	return false, fmt.Errorf("failed to parse index existence response: %s", err)
+	// }
+	if res.StatusCode != 404 {
+		return true, nil
 	}
 
 	// Check if the index exists
-	exists, ok := respBody[indexName].(bool)
-	if !ok {
-		return false, fmt.Errorf("unexpected response structure while checking index existence")
-	}
+	// exists, ok := respBody[indexName].(bool)
+	// if !ok {
+	// 	return false, fmt.Errorf("unexpected response structure while checking index existence")
+	// }
 
-	return exists, nil
+	return false, errors.New("Test !!")
 }
