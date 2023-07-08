@@ -2,10 +2,8 @@ package handlers
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"klikdaily-databoard/helper"
 	"klikdaily-databoard/models"
 	"klikdaily-databoard/usecases"
@@ -85,7 +83,7 @@ func (h *productHandler) UploadImageProduct(c *gin.Context) {
 
 	// Generate the download URL for the uploaded image
 	downloadURL := fmt.Sprintf("https://firebasestorage.googleapis.com/v0/b/%s/o/%s", bucketName, filename)
-	result, err := FetchFirebaseImage(downloadURL)
+	result, err := helper.FetchFirebaseImage(downloadURL)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, err)
 	}
@@ -134,35 +132,4 @@ func (h *productHandler) CreateProduct(c *gin.Context) {
 	c.BindJSON(&productRequest)
 	productResult := h.productUseCase.CreateProduct(authHeader, productRequest)
 	c.JSON(productResult.StatusCode, productResult)
-}
-
-func FetchFirebaseImage(urlFirebase string) (string, error) {
-	url := urlFirebase
-	method := "GET"
-
-	client := &http.Client{}
-	req, err := http.NewRequest(method, url, nil)
-
-	if err != nil {
-		fmt.Println(err)
-		return "", err
-	}
-	res, err := client.Do(req)
-	if err != nil {
-		fmt.Println(err)
-		return "", err
-	}
-	defer res.Body.Close()
-
-	body, err := ioutil.ReadAll(res.Body)
-	if err != nil {
-		fmt.Println(err)
-		return "", err
-	}
-	firebaseImage := helper.FirebaseImage{}
-	err = json.Unmarshal(body, &firebaseImage)
-	if err != nil {
-		return "", err
-	}
-	return fmt.Sprintf("%s?alt=media&token=%s", urlFirebase, firebaseImage.Token), nil
 }
