@@ -13,3 +13,7 @@ type ImageURL struct {
 	Message    string `json:"message"`
 	StatusCode int    `json:"status_code"`
 }
+
+type FirebaseImage struct {
+	Token string `json:"downloadTokens"`
+}
