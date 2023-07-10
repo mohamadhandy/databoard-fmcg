@@ -13,6 +13,7 @@ import (
 	"strings"
 
 	"github.com/elastic/go-elasticsearch/v7"
+	"github.com/streadway/amqp"
 	"gorm.io/gorm"
 )
 
@@ -25,14 +26,16 @@ type ProductRepositoryInterface interface {
 }
 
 type productRepository struct {
-	db *gorm.DB
-	es *elasticsearch.Client
+	db       *gorm.DB
+	es       *elasticsearch.Client
+	rabbitMQ *amqp.Channel
 }
 
-func InitProductRepository(db *gorm.DB, es *elasticsearch.Client) ProductRepositoryInterface {
+func InitProductRepository(db *gorm.DB, es *elasticsearch.Client, rabbitMQ *amqp.Channel) ProductRepositoryInterface {
 	return &productRepository{
 		db,
 		es,
+		rabbitMQ,
 	}
 }
 

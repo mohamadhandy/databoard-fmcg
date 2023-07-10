@@ -9,11 +9,12 @@ import (
 	"github.com/elastic/go-elasticsearch/v7"
 	"github.com/gin-gonic/gin"
 	"github.com/redis/go-redis/v9"
+	"github.com/streadway/amqp"
 	"gorm.io/gorm"
 )
 
-func RouteAPI(g *gin.Engine, parentCtx context.Context, db *gorm.DB, rdb *redis.Client, es *elasticsearch.Client) {
-	repo := usecases.InitRepository(db, rdb, es)
+func RouteAPI(g *gin.Engine, parentCtx context.Context, db *gorm.DB, rdb *redis.Client, es *elasticsearch.Client, rabbitMQ *amqp.Channel) {
+	repo := usecases.InitRepository(db, rdb, es, rabbitMQ)
 	admin := handlers.InitVersionOneAdminHandler(repo)
 	auth := handlers.InitVersionOneAuthenticationHandler(repo)
 	brand := handlers.InitVersionOneBrandHandler(repo)
