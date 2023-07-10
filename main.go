@@ -7,6 +7,7 @@ import (
 	"log"
 
 	"github.com/gin-gonic/gin"
+	"github.com/streadway/amqp"
 )
 
 func main() {
@@ -39,6 +40,35 @@ func main() {
 		log.Printf("Index %s created", indexName)
 	} else {
 		log.Printf("Index %s already exists", indexName)
+	}
+	// RabbitMQ connection details
+	rabbitMQURL := "amqp://guest:guest@localhost:5672/"
+	rabbitMQQueue := "postgre_sync_queue"
+	// Connect to RabbitMQ
+	rabbitMQConnection, err := amqp.Dial(rabbitMQURL)
+	if err != nil {
+		log.Fatal("Failed to connect to RabbitMQ:", err)
+	}
+	defer rabbitMQConnection.Close()
+
+	// Create a RabbitMQ channel
+	ch, err := rabbitMQConnection.Channel()
+	if err != nil {
+		log.Fatal("Failed to open a channel:", err)
+	}
+	defer ch.Close()
+
+	// Declare the RabbitMQ queue
+	_, err = ch.QueueDeclare(
+		rabbitMQQueue, // Queue name
+		true,          // Durable
+		false,         // Auto-delete
+		false,         // Exclusive
+		false,         // No-wait
+		nil,           // Arguments
+	)
+	if err != nil {
+		log.Fatal("Failed to declare RabbitMQ queue:", err)
 	}
 	routes.RouteAPI(router, context.Background(), config.NewConnection(), config.NewConnectionRedis(), es)
 	router.Run("localhost:9000")
