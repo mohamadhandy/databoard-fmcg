@@ -13,6 +13,7 @@ type Product struct {
 	UpdatedBy  string    `gorm:"type:varchar(100);not null" json:"updated_by"`
 	SKU        string    `gorm:"type:varchar(9);not null" json:"sku"`
 	Status     string    `gorm:"type:varchar(20);not null" json:"status"`
+	ImageURL   string    `gorm:"type:text;not null" json:"image_url"`
 }
 
 type ProductRequest struct {
@@ -25,6 +26,7 @@ type ProductRequest struct {
 	UpdatedAt  time.Time `json:"updated_at"`
 	CreatedBy  string    `gorm:"type:varchar(100);not null" json:"created_by"`
 	UpdatedBy  string    `gorm:"type:varchar(100);not null" json:"updated_by"`
+	ImageURL   string    `gorm:"type:text;not null" json:"image_url"`
 	// plural
 	Page  int `json:"page"`
 	Limit int `json:"limit"`
@@ -41,6 +43,7 @@ type ProductResponse struct {
 	UpdatedBy    string    `gorm:"type:varchar(100);not null" json:"updated_by"`
 	SKU          string    `gorm:"type:varchar(9);not null" json:"sku"`
 	Status       string    `gorm:"type:varchar(20);not null" json:"status"`
+	ImageURL     string    `gorm:"type:text;not null" json:"image_url"`
 }
 
 func (Product) TableName() string {

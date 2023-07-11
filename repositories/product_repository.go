@@ -39,7 +39,7 @@ func (r *productRepository) GetProducts(productReq models.ProductRequest) chan R
 		query := fmt.Sprintf(`SELECT p2.id, p2.name, c2.name as category_name,
 		b2.name as brand_name, p2.status, p2.sku,
 		p2.created_at, p2.updated_at,
-		p2.created_by, p2.updated_by
+		p2.created_by, p2.updated_by, p2.image_url
 		FROM "Product" as p2
 		JOIN "Category" as c2 ON p2.category_id = c2.id
 		JOIN "Brand" as b2 ON p2.brand_id = b2.id
@@ -207,6 +207,7 @@ func (r *productRepository) CreateProduct(pr models.ProductRequest, tokenString 
 			CreatedBy:  userName,
 			UpdatedBy:  userName,
 			SKU:        pr.BrandId + pr.CategoryId + latestIdString,
+			ImageURL:   pr.ImageURL,
 		}
 
 		err = tx.Transaction(func(tx *gorm.DB) error {
