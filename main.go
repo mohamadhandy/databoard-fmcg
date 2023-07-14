@@ -40,10 +40,10 @@ func main() {
 	} else {
 		log.Printf("Index %s already exists", indexName)
 	}
-	rabbitMQ, errRabbitMQ := config.SetupRabbitMQ()
-	if errRabbitMQ != nil {
-		panic(errRabbitMQ)
-	}
-	routes.RouteAPI(router, context.Background(), config.NewConnection(), config.NewConnectionRedis(), es, rabbitMQ)
+	// rabbitMQ, errRabbitMQ := config.SetupRabbitMQ()
+	// if errRabbitMQ != nil {
+	// 	panic(errRabbitMQ)
+	// }
+	routes.RouteAPI(router, context.Background(), config.NewConnection(), config.NewConnectionRedis(), es)
 	router.Run("localhost:9000")
 }
