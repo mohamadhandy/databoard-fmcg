@@ -17,12 +17,9 @@ func LoadHttpService() *gin.Engine {
 		panic(err)
 	}
 	// Create the Elasticsearch index
-	indexName := "elasticsearch_index"
+	indexName := "products"
 	// Check if the index exists
 	exists, err := config.IndexExists(es, indexName)
-	if err != nil {
-		log.Fatalf("Error checking index existence: %s", err)
-	}
 
 	if !exists {
 		// Create the Elasticsearch index
@@ -33,6 +30,10 @@ func LoadHttpService() *gin.Engine {
 		log.Printf("Index %s created", indexName)
 	} else {
 		log.Printf("Index %s already exists", indexName)
+	}
+
+	if err != nil {
+		log.Fatalf("Error checking index existence: %s", err)
 	}
 
 	mb, err := config.NewConnectionRabbitMQ()

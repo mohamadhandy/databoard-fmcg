@@ -66,7 +66,7 @@ func (r *productRepository) GetProducts(productReq models.ProductRequest, search
 
 		// Execute the Elasticsearch search
 		res, err := r.es.Search(
-			r.es.Search.WithIndex("elasticsearch_index"),
+			r.es.Search.WithIndex("products"),
 			r.es.Search.WithBody(r.getBodyBytes(query)),
 		)
 		if err != nil {
