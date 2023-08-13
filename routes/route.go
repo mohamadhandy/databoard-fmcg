@@ -2,6 +2,7 @@ package routes
 
 import (
 	"context"
+	"klikdaily-databoard/config"
 	"klikdaily-databoard/handlers"
 	"klikdaily-databoard/middleware"
 	"klikdaily-databoard/usecases"
@@ -12,8 +13,8 @@ import (
 	"gorm.io/gorm"
 )
 
-func RouteAPI(g *gin.Engine, parentCtx context.Context, db *gorm.DB, rdb *redis.Client, es *elasticsearch.Client) {
-	repo := usecases.InitRepository(db, rdb, es)
+func RouteAPI(g *gin.Engine, parentCtx context.Context, db *gorm.DB, rdb *redis.Client, es *elasticsearch.Client, mb *config.MessageBroker) {
+	repo := usecases.InitRepository(db, rdb, es, mb)
 	admin := handlers.InitVersionOneAdminHandler(repo)
 	auth := handlers.InitVersionOneAuthenticationHandler(repo)
 	brand := handlers.InitVersionOneBrandHandler(repo)

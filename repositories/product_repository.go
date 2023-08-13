@@ -6,6 +6,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"klikdaily-databoard/config"
+	"klikdaily-databoard/definition"
 	"klikdaily-databoard/helper"
 	"klikdaily-databoard/models"
 	"log"
@@ -15,7 +17,7 @@ import (
 
 	"github.com/elastic/go-elasticsearch/v7"
 	"github.com/elastic/go-elasticsearch/v7/esapi"
-	"github.com/streadway/amqp"
+	amqp "github.com/rabbitmq/amqp091-go"
 	"gorm.io/gorm"
 )
 
@@ -30,12 +32,14 @@ type ProductRepositoryInterface interface {
 type productRepository struct {
 	db *gorm.DB
 	es *elasticsearch.Client
+	mb *config.MessageBroker
 }
 
-func InitProductRepository(db *gorm.DB, es *elasticsearch.Client) ProductRepositoryInterface {
+func InitProductRepository(db *gorm.DB, es *elasticsearch.Client, mb *config.MessageBroker) ProductRepositoryInterface {
 	return &productRepository{
 		db,
 		es,
+		mb,
 	}
 }
 
@@ -293,61 +297,43 @@ func (r *productRepository) CreateProduct(pr models.ProductRequest, tokenString 
 			return
 		}
 
-		// Connect to RabbitMQ
-		conn, err := amqp.Dial("amqp://guest:guest@localhost:5672/")
-		if err != nil {
-			result <- RepositoryResult[any]{
-				Data:       nil,
-				Error:      err,
-				Message:    "Error connecting to RabbitMQ: " + err.Error(),
-				StatusCode: http.StatusInternalServerError,
-			}
-			return
-		}
-		defer conn.Close()
+		// Start the Elasticsearch consumer
+		// go startElasticsearchConsumer()
 
-		// Create a channel
-		ch, err := conn.Channel()
 		if err != nil {
 			result <- RepositoryResult[any]{
 				Data:       nil,
 				Error:      err,
-				Message:    "Error creating RabbitMQ channel: " + err.Error(),
+				Message:    "Error declaring exchange to RabbitMQ: " + err.Error(),
 				StatusCode: http.StatusInternalServerError,
 			}
 			return
 		}
-		defer ch.Close()
 
-		// Declare a queue
-		queueName := "product_sync_queue"
-		_, err = ch.QueueDeclare(
-			queueName,
-			false,
-			false,
-			false,
-			false,
-			nil,
-		)
+		productJSON, err := json.Marshal(product)
 		if err != nil {
 			result <- RepositoryResult[any]{
 				Data:       nil,
 				Error:      err,
-				Message:    "Error declaring RabbitMQ queue: " + err.Error(),
+				Message:    "Error marshaling product to JSON: " + err.Error(),
 				StatusCode: http.StatusInternalServerError,
 			}
 			return
 		}
+
+		confirmations := r.mb.Channel.NotifyPublish(make(chan amqp.Confirmation, 1))
+
+		defer r.mb.HandleConfirmation(confirmations)
 
 		// Publish the product ID to RabbitMQ
-		err = ch.Publish(
-			"",
-			queueName,
+		err = r.mb.Channel.Publish(
+			definition.ExchangeName,
+			"product.created",
 			false,
 			false,
 			amqp.Publishing{
 				ContentType: "text/plain",
-				Body:        []byte(fmt.Sprint(product.ID)),
+				Body:        productJSON,
 			},
 		)
 		if err != nil {
@@ -359,9 +345,6 @@ func (r *productRepository) CreateProduct(pr models.ProductRequest, tokenString 
 			}
 			return
 		}
-
-		// Start the Elasticsearch consumer
-		go startElasticsearchConsumer()
 
 		// Commit the transaction
 		if err := tx.Commit().Error; err != nil {
@@ -421,8 +404,13 @@ func startElasticsearchConsumer() {
 }
 
 func syncProductToElasticsearch(msg []byte) {
-	productId := string(msg)
-	fmt.Println("Received product ID:", productId)
+	var product models.Product
+
+	// Unmarshal pesan JSON menjadi objek Product
+	if err := json.Unmarshal(msg, &product); err != nil {
+		log.Printf("Error unmarshaling product from JSON: %s", err)
+		return
+	}
 
 	// Create an Elasticsearch client
 	esClient, err := elasticsearch.NewDefaultClient()
@@ -433,8 +421,8 @@ func syncProductToElasticsearch(msg []byte) {
 
 	// Prepare the product document to be indexed in Elasticsearch
 	productDoc := map[string]interface{}{
-		"id":   productId,
-		"name": "Product Name", // Replace with the actual product name
+		"id":   product.ID,
+		"name": product.Name, // Replace with the actual product name
 		// Add more fields as needed
 	}
 
@@ -448,7 +436,7 @@ func syncProductToElasticsearch(msg []byte) {
 	// Prepare the Elasticsearch index request
 	req := esapi.IndexRequest{
 		Index:      "products", // Replace with the actual index name
-		DocumentID: productId,
+		DocumentID: product.ID,
 		Body:       bytes.NewReader(productJSON),
 		Refresh:    "true",
 	}
