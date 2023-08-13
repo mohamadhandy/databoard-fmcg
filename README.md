@@ -65,6 +65,17 @@ INSERT INTO "Category" (id, name, created_at, updated_at, created_by, updated_by
 VALUES ('01', 'Minuman', NOW(), NOW(), 'Admin Klikdaily', 'Admin Klikdaily');
 ```
 
+# select table query
+```sql
+select * from "Admin" a2 
+
+select * from "Brand" b2
+
+select * from "Category" c 
+
+select * from "Product" p
+```
+
 # clone this project
 1. git clone this project (branch sync-es-postgre-using-rabbitmq)
 2. run with `fresh`
